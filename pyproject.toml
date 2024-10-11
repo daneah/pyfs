@@ -2,6 +2,107 @@
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
+[project]
+requires-python = ">=3.10"
+name = "pyfs"
+version = "0.0.1"
+description = "A toy, in-memory file system in Python"
+authors = [
+    { name = "Dane Hillard", email = "github@danehillard.com" }
+]
+license = { file = "LICENSE" }
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: System :: Filesystems",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "License :: OSI Approved :: MIT License",
+]
+dynamic = ["readme"]
+
+[project.urls]
+Repository = "https://github.com/daneah/pyfs"
+Issues = "https://github.com/daneah/pyfs/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+exclude = ["test*"]
+
+[tool.setuptools.dynamic]
+readme = { file = "README.md", content-type = "text/markdown" }
+
+######################
+# Tool configuration #
+######################
+
 [tool.black]
 line-length = 120
-target-version = ["py310"]
+target-version = ["py310", "py311", "py312", "py313"]
+
+[tool.pytest.ini_options]
+testpaths = ["test"]
+addopts = ["-ra", "-q", "--strict-markers", "--cov"]
+xfail_strict = true
+
+[tool.mypy]
+python_version = "3.10"
+warn_unused_configs = true
+show_error_context = true
+pretty = true
+namespace_packages = true
+check_untyped_defs = true
+
+[tool.coverage.run]
+branch = true
+source = ["pyfs"]
+omit = [
+    "test/*",
+]
+
+[tool.coverage.report]
+precision = 2
+show_missing = true
+skip_covered = true
+skip_empty = true
+
+[tool.coverage.paths]
+source = [
+    "src",
+    ".tox/*/site-packages",
+]
+
+[tool.tox]
+envlist = ["py310", "py311", "py312", "py313"]
+isolated_build = true
+
+[tool.tox.env_run_base]
+package = "wheel"
+wheel_build_env = ".pkg"
+deps = [
+    "pytest",
+    "pytest-cov",
+]
+commands = [
+    ["pytest", { replace = "posargs", default = [], extend = true }],
+]
+
+[tool.tox.env.format]
+skip_install = true
+deps = [
+    "black",
+]
+commands = [
+    ["black", { replace = "posargs", default = ["--check", "--diff", "src", "test"], extend = true }],
+]
+
+[tool.tox.env.typecheck]
+deps = [
+    { replace = "ref", of = ["tool", "tox", "env_run_base", "deps"], extend = true },
+    "mypy",
+]
+commands = [
+    ["mypy", { replace = "posargs", default = ["src", "test"], extend = true }],
+]
